@@ -20,13 +20,15 @@ class Game extends Component {
         { x: 0, y: 0 },
         { x: 0, y: 0 }
       ],
-      //gameState = statut du jeu
+      //gameState = statut du jeu,
+      appleCounter: 0,
       gameState: "playing",
       direction: "ArrowRight",
       apple: generateApplePosition(),
       snakeSize: 2
     };
     this.gridRef = null;
+    this.intervalId = null;
   }
 
   componentDidMount() {
@@ -41,7 +43,7 @@ class Game extends Component {
   }
 
   checkApple() {
-    this.setState(prevState => {
+    this.setState((prevState, appleCounter) => {
       const isEatingApple =
         prevState.apple.x === prevState.snakePosition.x &&
         prevState.apple.y === prevState.snakePosition.y;
@@ -49,6 +51,7 @@ class Game extends Component {
       if (isEatingApple) {
         return {
           apple: generateApplePosition(),
+          appleCounter: this.appleCounter + 1,
           snakeSize: isEatingApple
             ? prevState.snakeSize + 1
             : prevState.snakeSize
@@ -56,6 +59,17 @@ class Game extends Component {
       }
     });
   }
+
+  playGameStatus = () => {
+    this.intervalId = setInterval(() => {
+      this.pauseGame();
+      this.loopGame.bind(this);
+    }, 300);
+  };
+
+  pauseGame = () => {
+    this.intervalId && clearInterval(this.intervalId);
+  };
 
   collision() {
     this.setState(prevState => {
@@ -72,7 +86,6 @@ class Game extends Component {
       );
       return { gameState: wallCollision || bodyCollision ? "loose" : "run" };
     });
-    console.log(this.state.gameState);
   }
 
   moveSnake() {
@@ -122,7 +135,14 @@ class Game extends Component {
   }
 
   render() {
-    const { grid, snakePosition, bodySnakePosition, apple } = this.state;
+    const {
+      grid,
+      snakePosition,
+      bodySnakePosition,
+      apple,
+      appleCounter,
+      gameState
+    } = this.state;
     return (
       <div
         onKeyDown={this.directionArrow.bind(this)}
@@ -138,6 +158,10 @@ class Game extends Component {
             apple={apple}
           />
         ))}
+        <button onClick={this.playGameStatus}>Play</button>
+        <button onClick={this.pauseGame}>Pause</button>
+        <p>vous avez mangé {appleCounter}</p>
+        {gameState}
       </div>
     );
   }
